@@ -1,9 +1,10 @@
 package me.ghui.v2er.module.home;
 
 import android.os.Bundle;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import android.view.View;
+
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.util.List;
 
@@ -87,7 +88,7 @@ public class NewsFragment extends BaseHomeFragment<NewsContract.IPresenter> impl
 
     @Override
     protected void init() {
-        mCurrentTab = TabInfo.getSelectTab();
+//        mCurrentTab = TabInfo.getSelectTab();
         mAdapter.setOnItemClickListener(this);
         mRecyclerView.addDivider();
         mRecyclerView.setLayoutManager(mLayoutManager = new LinearLayoutManager(getContext()));
@@ -117,6 +118,14 @@ public class NewsFragment extends BaseHomeFragment<NewsContract.IPresenter> impl
             fillView(mNewsInfo, false);
             post(() -> mLayoutManager.scrollToPositionWithOffset(restoreData.scrollPos, restoreData.scrollOffset));
             hideLoading();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mAdapter.getItemCount() <= 1) {
+            mPresenter.start();
         }
     }
 
@@ -153,6 +162,10 @@ public class NewsFragment extends BaseHomeFragment<NewsContract.IPresenter> impl
     @Override
     public List<NewsInfo.Item> getNewsInfo() {
         return mAdapter.getDatas();
+    }
+
+    public void setCurrentTab(TabInfo mCurrentTab) {
+        this.mCurrentTab = mCurrentTab;
     }
 
     @Override

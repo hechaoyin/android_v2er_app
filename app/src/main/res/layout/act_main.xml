@@ -29,9 +29,10 @@
                     android:tint="?attr/icon_tint_color" />
             </me.ghui.v2er.widget.BaseToolBar>
 
-            <me.ghui.v2er.widget.CSlidingTabLayout
-                android:id="@+id/tablayout_main"
-                style="@style/CSTablayout" />
+<!--            <me.ghui.v2er.widget.CSlidingTabLayout-->
+<!--                android:id="@+id/tablayout_main"-->
+<!--                style="@style/CSTablayout"-->
+<!--                app:layout_behavior="@string/bottom_sheet_behavior" />-->
         </com.google.android.material.appbar.AppBarLayout>
 
         <FrameLayout
@@ -45,6 +46,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
         </FrameLayout>
+
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <com.google.android.material.navigation.NavigationView

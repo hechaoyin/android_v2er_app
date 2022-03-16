@@ -2,14 +2,12 @@ package me.ghui.v2er.module.home;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.widget.SwitchCompat;
@@ -22,7 +20,6 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.bumptech.glide.request.target.Target;
 import com.flyco.tablayout.listener.OnTabSelectListener;
-import com.flyco.tablayout.widget.MsgView;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.navigation.NavigationView;
 
@@ -48,13 +45,11 @@ import me.ghui.v2er.module.user.UserHomeActivity;
 import me.ghui.v2er.network.bean.UserInfo;
 import me.ghui.v2er.util.DarkModelUtils;
 import me.ghui.v2er.util.L;
-import me.ghui.v2er.util.ScaleUtils;
 import me.ghui.v2er.util.Theme;
 import me.ghui.v2er.util.UserUtils;
 import me.ghui.v2er.util.Utils;
 import me.ghui.v2er.util.ViewUtils;
 import me.ghui.v2er.widget.BaseToolBar;
-import me.ghui.v2er.widget.CSlidingTabLayout;
 import me.ghui.v2er.widget.FollowProgressBtn;
 import me.ghui.v2er.widget.dialog.ConfirmDialog;
 import me.ghui.v2er.widget.listener.AppBarStateChangeListener;
@@ -75,8 +70,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener,
     DrawerLayout mDrawerLayout;
     @BindView(R.id.navigationview_main)
     NavigationView mNavigationView;
-    @BindView(R.id.tablayout_main)
-    CSlidingTabLayout mSlidingTabLayout;
+    //    @BindView(R.id.tablayout_main)
+//    CSlidingTabLayout mSlidingTabLayout;
     @BindView(R.id.viewpager_main)
     ViewPager mViewPager;
     @BindView(R.id.main_toolbar)
@@ -85,7 +80,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener,
     ViewGroup mTabMenuContainer;
     @BindView(R.id.main_appbar)
     AppBarLayout mAppBarLayout;
-    private NewsFragment mNewsFragment;
+    //    private NewsFragment mNewsFragment;
+    private NewsHomeFragment mNewsHomeFragment;
     private MsgFragment mMsgFragment;
     private NodesNavFragment mNavFragment;
     private View mNavHeaderView;
@@ -93,7 +89,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener,
     private TextView mUserNameTv;
     private FollowProgressBtn mCheckInBtn;
     private CheckInPresenter mCheckInPresenter;
-    private TextView mTab1View;
+    //    private TextView mTab1View;
     private MenuItem mNightMenuItem;
     private SwitchCompat mNightSwitch;
     private HomeFilterMenu mFilterMenu;
@@ -140,12 +136,17 @@ public class MainActivity extends BaseActivity implements View.OnClickListener,
 
     @Override
     public boolean onToolbarDoubleTaped() {
-        View rootView = getCurrentFragment().getView();
-        if (rootView == null) return false;
-        RecyclerView recyclerView = rootView.findViewById(R.id.base_recyclerview);
-        if (recyclerView != null) {
-            recyclerView.scrollToPosition(0);
-            return true;
+        final Fragment currentFragment = getCurrentFragment();
+        if (currentFragment instanceof NewsHomeFragment) {
+            return ((NewsHomeFragment) currentFragment).scrollToTop();
+        } else {
+            View rootView = currentFragment.getView();
+            if (rootView == null) return false;
+            RecyclerView recyclerView = rootView.findViewById(R.id.base_recyclerview);
+            if (recyclerView != null) {
+                recyclerView.smoothScrollToPosition(0);
+                return true;
+            }
         }
         return false;
     }
@@ -190,6 +191,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener,
         updateDrawLayout();
         mNavigationView.setNavigationItemSelectedListener(item -> {
             switch (item.getItemId()) {
+                case R.id.home_nav_item:
+                    mViewPager.setCurrentItem(0);
+                    break;
+                case R.id.msg_nav_item:
+                    mViewPager.setCurrentItem(1);
+                    break;
+                case R.id.nodes_nav_item:
+                    mViewPager.setCurrentItem(2);
+                    break;
                 case R.id.hot_nav_item:
                     Navigator.from(getContext()).to(DailyHotActivity.class).start();
                     break;
@@ -213,10 +223,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener,
                     onNightMenuItemClicked(DarkModelUtils.isDarkMode());
                     break;
             }
-            delay(50, () -> mDrawerLayout.closeDrawer(Gravity.START, false));
+            delay(50, () -> mDrawerLayout.closeDrawer(Gravity.LEFT, false));
             return true;
         });
-
 
 
         Menu menu = mNavigationView.getMenu();
@@ -240,13 +249,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener,
         TAB_TITLES[0] = TabInfo.getSelectTab().title;
         mViewPager.setAdapter(new SlidePagerAdapter(getSupportFragmentManager()));
         mViewPager.setOffscreenPageLimit(2);
-        mSlidingTabLayout.setViewPager(mViewPager, TAB_TITLES);
-        mSlidingTabLayout.setOnTabSelectListener(this);
+//        mSlidingTabLayout.setViewPager(mViewPager, TAB_TITLES);
+//        mSlidingTabLayout.setOnTabSelectListener(this);
         configNewsTabTitle();
         initCheckIn();
 
-        int index = getIntent().getIntExtra(TAB_INDEX, 0);
-        mSlidingTabLayout.setCurrentTab(index);
+//        int index = getIntent().getIntExtra(TAB_INDEX, 0);
+//        mSlidingTabLayout.setCurrentTab(index);
         isAppbarExpanted = getIntent().getBooleanExtra(TOPIC_IS_APPBAR_EXPANDED, true);
         mAppBarLayout.setExpanded(isAppbarExpanted);
     }
@@ -254,9 +263,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener,
     @Override
     protected void reloadMode(int mode) {
         ActivityReloader.target(this)
-                .putExtra(TAB_INDEX, mSlidingTabLayout.getCurrentTab())
+//                .putExtra(TAB_INDEX, mSlidingTabLayout.getCurrentTab())
                 .putExtra(TOPIC_IS_APPBAR_EXPANDED, isAppbarExpanted)
-                .putExtra(PAGE_ONE_DATA, mNewsFragment.getRestoreData())
+//                .putExtra(PAGE_ONE_DATA, mNewsFragment.getRestoreData())
                 .putExtra(PAGE_TWO_DATA, mMsgFragment.getRestoreData())
                 .putExtra(PAGE_THREE_DATA, mNavFragment.getRestoreData())
                 .reload();
@@ -282,13 +291,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener,
     }
 
     private void configNewsTabTitle() {
-        int padding = ScaleUtils.dp(6f);
-        mSlidingTabLayout.setTitleViewVerticalPadding(0, padding);
-        mSlidingTabLayout.setTitleViewVerticalPadding(1, padding);
-        mSlidingTabLayout.setTitleViewVerticalPadding(2, padding);
-        mTab1View = mSlidingTabLayout.getTitleView(0);
-        mTab1View.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.animate_triangle_down, 0);
-        mTab1View.setCompoundDrawablePadding(ScaleUtils.dp(6));
+//        int padding = ScaleUtils.dp(6f);
+//        mSlidingTabLayout.setTitleViewVerticalPadding(0, padding);
+//        mSlidingTabLayout.setTitleViewVerticalPadding(1, padding);
+//        mSlidingTabLayout.setTitleViewVerticalPadding(2, padding);
+//        mTab1View = mSlidingTabLayout.getTitleView(0);
+//        mTab1View.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.animate_triangle_down, 0);
+//        mTab1View.setCompoundDrawablePadding(ScaleUtils.dp(6));
     }
 
     private void initCheckIn() {
@@ -340,9 +349,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener,
         }
     }
 
-    private int getCurrentTab() {
-        return mSlidingTabLayout.getCurrentTab();
-    }
+//    private int getCurrentTab() {
+//        return mSlidingTabLayout.getCurrentTab();
+//    }
 
     @SuppressLint("WrongConstant")
     @Override
@@ -357,10 +366,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener,
             return;
         }
 
-        if (getCurrentTab() != 0) {
-            mSlidingTabLayout.setCurrentTab(0);
-            return;
-        }
+//        if (getCurrentTab() != 0) {
+//            mSlidingTabLayout.setCurrentTab(0);
+//            return;
+//        }
 
         if (mFilterMenu != null && mFilterMenu.isShowing()) {
             mFilterMenu.hide();
@@ -371,21 +380,34 @@ public class MainActivity extends BaseActivity implements View.OnClickListener,
 
     @Override
     public void updateUnReadMsg(int position, int count) {
-        if (count <= 0) {//hide
-            mSlidingTabLayout.hideMsg(position);
-        } else {
-            mSlidingTabLayout.showMsg(position, count);
-            //config sliding msgview
-            float padding = getResources().getDimension(R.dimen.mediumTextSize) / 2f;
-            mSlidingTabLayout.setMsgMargin(1, padding * 0.92f, padding * 0.28f);
-            MsgView msgView = mSlidingTabLayout.getMsgView(1);
-            float textSize = getResources().getDimension(R.dimen.tinyTextSize);
-            msgView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
-            RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) msgView.getLayoutParams();
-            lp.width = Math.round(textSize * (count + "").length() * 1.5f);
-            lp.height = Math.round(textSize * 1.5f);
-            msgView.setLayoutParams(lp);
-        }
+//        if (count <= 0) { // hide
+//            mSlidingTabLayout.hideMsg(position);
+//        } else {
+//            mSlidingTabLayout.showMsg(position, count);
+//            //config sliding msgview
+//            float padding = getResources().getDimension(R.dimen.mediumTextSize) / 2f;
+//            mSlidingTabLayout.setMsgMargin(1, padding * 0.92f, padding * 0.28f);
+//            MsgView msgView = mSlidingTabLayout.getMsgView(1);
+//            float textSize = getResources().getDimension(R.dimen.tinyTextSize);
+//            msgView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize);
+//            RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) msgView.getLayoutParams();
+//            lp.width = Math.round(textSize * (count + "").length() * 1.5f);
+//            lp.height = Math.round(textSize * 1.5f);
+//            msgView.setLayoutParams(lp);
+//        }
+
+
+//    // BottomNavigationView 包含一个 BottomNavigationMenuView
+//        BottomNavigationMenuView menuView = (BottomNavigationMenuView) navView.getChildAt(0);
+//
+//        //BottomNavigationMenuView 包含多个 BottomNavigationItemView ，我们最终在itemView 上添加未读数目
+//        View tab = menuView.getChildAt(2);
+//        BottomNavigationItemView itemView = (BottomNavigationItemView) tab;
+//    //加载我们的角标View，新创建的一个布局
+//        View badge = LayoutInflater.from(this).inflate(R.layout.msg_num, navView, false);
+//  //添加到Tab上
+//        itemView.addView(badge);
+//        badgeNum = badge.findViewById(R.id.tv_msg_count);
     }
 
     @Override
@@ -402,10 +424,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener,
     }
 
     private Fragment getCurrentFragment() {
-        int pos = getCurrentTab();
+        int pos = mViewPager.getCurrentItem();
         switch (pos) {
             case 0:
-                return mNewsFragment;
+//                return mNewsFragment;
+                return mNewsHomeFragment;
             case 1:
                 return mMsgFragment;
             case 2:
@@ -422,31 +445,32 @@ public class MainActivity extends BaseActivity implements View.OnClickListener,
     @Override
     public void onTabSelect(int position) {
         L.d("onTabSelect");
-        if (position == 0) {
-            mTab1View.getCompoundDrawables()[2].setTint(Theme.getColor(R.attr.tablayout_selected_color, this));
-        } else {
-            mTab1View.getCompoundDrawables()[2].setTint(Theme.getColor(R.attr.tablayout_unselected_color, this));
-            if (mFilterMenu != null && mFilterMenu.isShowing()) {
-                mFilterMenu.hide();
-            }
-        }
+//        if (position == 0) {
+//            mTab1View.getCompoundDrawables()[2].setTint(Theme.getColor(R.attr.tablayout_selected_color, this));
+//        } else {
+//            mTab1View.getCompoundDrawables()[2].setTint(Theme.getColor(R.attr.tablayout_unselected_color, this));
+//            if (mFilterMenu != null && mFilterMenu.isShowing()) {
+//                mFilterMenu.hide();
+//            }
+//        }
     }
 
     @Override
     public void onTabReselect(int position) {
         L.d("onTabReSelect");
-        if (position == 0) {
-            if (mFilterMenu == null) {
-                mFilterMenu = new HomeFilterMenu(mTabMenuContainer, mTab1View);
-                mFilterMenu.setOnItemClickListner(this);
-            }
-            mFilterMenu.toggle();
-        }
+//        if (position == 0) {
+//            if (mFilterMenu == null) {
+//                mFilterMenu = new HomeFilterMenu(mTabMenuContainer, mTab1View);
+//                mFilterMenu.setOnItemClickListner(this);
+//            }
+//            mFilterMenu.toggle();
+//        }
     }
 
     @Override
     public void onMenuItemClicked(TabInfo tabInfo) {
-        ChangeTabTypeDelegate delegate = mNewsFragment;
+        // ChangeTabTypeDelegate delegate = mNewsFragment;
+        ChangeTabTypeDelegate delegate = mNewsHomeFragment;
         delegate.changeTabType(tabInfo);
     }
 
@@ -472,10 +496,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener,
             BaseHomeFragment.RestoreData restoreData;
             switch (position) {
                 case 0:
-                    restoreData = (BaseHomeFragment.RestoreData) getIntent().getSerializableExtra(PAGE_ONE_DATA);
-                    NewsFragment newsFragment = NewsFragment.newInstance(restoreData);
-                    newsFragment.setUpdateUnReadMsgDelegate(MainActivity.this);
-                    fragment = newsFragment;
+//                    restoreData = (BaseHomeFragment.RestoreData) getIntent().getSerializableExtra(PAGE_ONE_DATA);
+//                    NewsFragment newsFragment = NewsFragment.newInstance(restoreData);
+//                    newsFragment.setUpdateUnReadMsgDelegate(MainActivity.this);
+//                    fragment = newsFragment;
+                    fragment = new NewsHomeFragment();
                     break;
                 case 1:
                     restoreData = (BaseHomeFragment.RestoreData) getIntent().getSerializableExtra(PAGE_TWO_DATA);
@@ -496,7 +521,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener,
             Fragment fragment = (Fragment) super.instantiateItem(container, position);
             switch (position) {
                 case 0:
-                    mNewsFragment = (NewsFragment) fragment;
+//                    mNewsFragment = (NewsFragment) fragment;
+                    mNewsHomeFragment = (NewsHomeFragment) fragment;
                     break;
                 case 1:
                     mMsgFragment = (MsgFragment) fragment;
